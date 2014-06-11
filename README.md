@@ -10,6 +10,7 @@ python proxy local:port remote:port speed
 * local:bind local address
 * remote:the server to be proxy
 * speed:simulation speed,1 mean the slowest,bigger number more speed
+* -v:show verbose
 
 example
 ------
