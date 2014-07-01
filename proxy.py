@@ -5,6 +5,9 @@ import time
 import re
 import sys
 
+
+req_count = 0
+
 class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	"""proxy connection"""
@@ -13,6 +16,8 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	buffer_size = 1024
 
 	rbufsize = 0
+
+	MAX_REQ = 2
 
 	def do_GET(self):
 		self.do_request()
@@ -49,7 +54,14 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.send_header(header[0],header[1])
 		self.end_headers()
 
-		time.sleep(1.0/hosts['speed'])
+                print req_count,self.MAX_REQ
+		if req_count > self.MAX_REQ:
+			print "sleep++++++++++++++++++++++++++++++++++"
+			time.sleep(1.0/hosts['speed'])
+			req_count = 0
+
+		req_count = req_count+1
+
 		self.wfile.write(data[1])
 		self.wfile.close()
 
@@ -132,8 +144,8 @@ def check_argv(argv):
 			'host':res[0],
 			'port':int(res[1])
 		}
-	if len(argv)>3 and re.match(r'\d+',argv[3]):
-		hosts['speed'] = int(argv[3])
+	if len(argv)>3 and re.match(r'\d+(\.\d)?',argv[3]):
+		hosts['speed'] = float(argv[3])
 	if len(argv)>4 and argv[4]=='-v':
 		hosts['verbose'] = True
 	else:
