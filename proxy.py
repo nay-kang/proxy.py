@@ -14,6 +14,8 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	rbufsize = 0
 
+	protocol_version = "HTTP/1.1"
+
 	def do_GET(self):
 		self.do_request()
 
@@ -40,7 +42,7 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 					d = self.rfile.read(self.buffer_size)
 				body += d
 				print len(body)
-				time.sleep(1.0/hosts['speed'])
+				#time.sleep(1.0/hosts['speed'])
 
 		data = self.proxy_request(self.path,headers,body)
 		status = data[2]
@@ -49,8 +51,9 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.send_header(header[0],header[1])
 		self.end_headers()
 
-		time.sleep(1.0/hosts['speed'])
+		#time.sleep(1.0/hosts['speed'])
 		self.wfile.write(data[1])
+		self.wfile.flush()
 		self.wfile.close()
 
 	def send_response(self, code, message=None):
@@ -92,8 +95,8 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		source_headers = response.getheaders()
 		headers = []
 		for header in source_headers:
-			if header[0].lower() == 'connection':
-				continue
+			#if header[0].lower() == 'connection':
+			#	continue
 			if header[0].lower() == 'location':
 				rege_str = hosts['remote']['host']+"(:"+str(hosts['remote']['port'])+")?"
 				replacement = hosts['bind']['host']+":"+str(hosts['bind']['port'])
@@ -111,6 +114,9 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			print '>>>>>>>>>>>>>>>>>>>>>>>>>>END<<<<<<<<<<<<<<<<<<<<<<<<\n\n'
 
 		return (headers,response_body,{'code':response.status,'msg':response.reason})
+
+	def log_message(self,format,*args):
+		pass
 
 	def get_proxy_conn(self):
 		if self.conn is None:
