@@ -5,6 +5,9 @@ import time
 import re
 import sys
 
+
+req_count = 0
+
 class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	"""proxy connection"""
@@ -15,6 +18,7 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	rbufsize = 0
 
 	protocol_version = "HTTP/1.1"
+	MAX_REQ = 5
 
 	def do_GET(self):
 		self.do_request()
@@ -42,7 +46,7 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 					d = self.rfile.read(self.buffer_size)
 				body += d
 				print len(body)
-				#time.sleep(1.0/hosts['speed'])
+				time.sleep(1.0/hosts['speed'])
 
 		data = self.proxy_request(self.path,headers,body)
 		status = data[2]
@@ -51,10 +55,17 @@ class ProxyHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.send_header(header[0],header[1])
 		self.end_headers()
 
-		#time.sleep(1.0/hosts['speed'])
+		global req_count
+		print req_count,self.MAX_REQ
+		if req_count > self.MAX_REQ:
+			print "sleep++++++++++++++++++++++++++++++++++"
+			time.sleep(1.0/hosts['speed'])
+			req_count = 0
+
+		req_count = req_count+1
+
 		self.wfile.write(data[1])
-		self.wfile.flush()
-		self.wfile.close()
+		#self.wfile.close()
 
 	def send_response(self, code, message=None):
 		self.log_request(code)
@@ -138,8 +149,8 @@ def check_argv(argv):
 			'host':res[0],
 			'port':int(res[1])
 		}
-	if len(argv)>3 and re.match(r'\d+',argv[3]):
-		hosts['speed'] = int(argv[3])
+	if len(argv)>3 and re.match(r'\d+(\.\d)?',argv[3]):
+		hosts['speed'] = float(argv[3])
 	if len(argv)>4 and argv[4]=='-v':
 		hosts['verbose'] = True
 	else:
